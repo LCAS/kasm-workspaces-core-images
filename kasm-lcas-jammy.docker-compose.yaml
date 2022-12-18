@@ -1,0 +1,26 @@
+version: '3'
+
+# persist changes in your home directory
+volumes:
+  kasm_lcas_jammy_home:
+
+services:
+  kasm-lcas-jammy:
+    build: 
+      context: .
+      dockerfile: dockerfile-kasm-lcas-jammy
+    restart: "no"
+    shm_size: '512m'
+    environment:
+      VNC_PW: password
+      START_XFCE4: 1
+      START_PULSEAUDIO: 1
+    image: lcas.lincoln.ac.uk/kasm:jammy
+    volumes:
+      #- kasm_lcas_jammy_home:/home/kasm-user
+      - .:/volume/host
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "6901:6901"
+    security_opt:
+      - seccomp=unconfined
