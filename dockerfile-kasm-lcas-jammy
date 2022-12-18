@@ -172,11 +172,18 @@ RUN wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 RUN add-apt-repository universe
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+RUN echo 'source /opt/ros/humble/setup.bash' >> $HOME/.bashrc
+
+
 
 RUN apt-get update \
-    && apt-get install -y ros-humble-desktop \
+    && apt-get install -y ros-humble-desktop ros-humble-turtlebot3-gazebo ros-humble-turtlebot3-navigation2 \
+        python3-pip openssh-server \
     && rm -rf /var/lib/apt/list/*
 
+# Install Teams
+RUN curl -L -o /tmp/teams.deb 'https://go.microsoft.com/fwlink/p/?LinkID=2112886&clcid=0x809&culture=en-gb&country=GB' \
+    && apt-get install /tmp/teams.deb 
 
 
 ### FIX PERMISSIONS ## Objective is to change the owner of non-home paths to root, remove write permissions, and set execute where required
