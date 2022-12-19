@@ -17,7 +17,7 @@ services:
       VNC_PW: password
       START_XFCE4: 1
       START_PULSEAUDIO: 1
-    image: lcas.lincoln.ac.uk/kasm:jammy
+    image: lcas.lincoln.ac.uk/lcas/kasm-desktop-ros-humble:develop
     volumes:
       - kasm_lcas_jammy_home:/home/kasm-user
       - .:/volume/host
