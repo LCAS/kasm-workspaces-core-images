@@ -127,8 +127,7 @@ RUN chmod +x /etc/squid/start_squid.sh && chmod 4755 /etc/squid/start_squid.sh
 COPY ./src/common/scripts/kasm_hook_scripts $STARTUPDIR
 ADD ./src/common/startup_scripts $STARTUPDIR
 RUN bash $STARTUPDIR/set_user_permission.sh $STARTUPDIR $HOME && \
-    echo 'source $STARTUPDIR/generate_container_user' >> $HOME/.bashrc && \
-    echo 'source /opt/ros/humble/setup.bash' >> $HOME/.bashrc
+    echo 'source $STARTUPDIR/generate_container_user' >> $HOME/.bashrc
 
 ### extra configurations needed per distro variant
 COPY ./src/ubuntu/install/extra $INST_SCRIPTS/extra/
@@ -142,9 +141,6 @@ RUN bash $INST_SCRIPTS/virtualgl/install_virtualgl.sh && rm -rf $INST_SCRIPTS/vi
 RUN (groupadd -g 1000 kasm-user \
     && useradd -M -u 1000 -g 1000 kasm-user \
     && usermod -a -G kasm-user kasm-user) ; exit 0
-ENV HOME /home/kasm-user
-WORKDIR $HOME
-RUN mkdir -p $HOME && chown -R 1000:0 $HOME
 
 ### Add Sudo Access
 RUN apt-get update \
@@ -161,8 +157,7 @@ RUN apt-get update \
     && sed -i 's|Exec=/usr/bin/google-chrome-stable|Exec=/usr/bin/google-chrome-stable --no-sandbox|g' /usr/share/applications/google-chrome.desktop \
     && sed -i 's|Exec=/usr/bin/google-chrome-stable --incognito|Exec=/usr/bin/google-chrome-stable --incognito --no-sandbox|g' /usr/share/applications/google-chrome.desktop
 
-
-### Add CodeServer
+### Add CodeServer and VSCode
 RUN cd /tmp && curl -fOL https://github.com/coder/code-server/releases/download/v4.8.3/code-server_4.8.3_amd64.deb && dpkg -i code-server_4.8.3_amd64.deb && rm code-server_4.8.3_amd64.deb  && \
     wget -O code.deb 'https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-x64' && dpkg -i code.deb
 # && /usr/bin/code-server --install-extension ms-python.python && /usr/bin/code-server --install-extension pijar.ros-snippets
@@ -173,18 +168,21 @@ RUN wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 RUN add-apt-repository universe
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
-
-
-
 RUN apt-get update \
     && apt-get install -y ros-humble-desktop ros-humble-turtlebot3-gazebo ros-humble-turtlebot3-navigation2 \
-        python3-pip openssh-server \
+        python3-pip openssh-server htop \
     && rm -rf /var/lib/apt/list/*
 
-# Install Teams
+### Install Teams
 RUN curl -L -o /tmp/teams.deb 'https://go.microsoft.com/fwlink/p/?LinkID=2112886&clcid=0x809&culture=en-gb&country=GB' \
     && apt-get install -y /tmp/teams.deb 
 
+RUN echo 'source /opt/ros/humble/setup.bash' >> $HOME/.bashrc \
+    && echo 'export TURTLEBOT3_MODEL=waffle' >> $HOME/.bashrc 
+
+ENV HOME /home/kasm-user
+WORKDIR $HOME
+RUN mkdir -p $HOME && chown -R 1000:0 $HOME
 
 ### FIX PERMISSIONS ## Objective is to change the owner of non-home paths to root, remove write permissions, and set execute where required
 # these files are created on container first exec, by the default user, so we have to create them since default will not have write perm
@@ -217,9 +215,6 @@ RUN touch $STARTUPDIR/wm.log \
 
 
 USER 1000
-
-
-
 
 ENTRYPOINT ["/dockerstartup/kasm_default_profile.sh", "/dockerstartup/vnc_startup.sh", "/dockerstartup/kasm_startup.sh"]
 CMD ["--wait"]

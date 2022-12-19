@@ -1,5 +1,7 @@
 version: '3'
 
+name: "uk-ac-lincoln-lcas-kasm-desktop"
+
 # persist changes in your home directory
 volumes:
   kasm_lcas_jammy_home:
@@ -17,7 +19,7 @@ services:
       START_PULSEAUDIO: 1
     image: lcas.lincoln.ac.uk/kasm:jammy
     volumes:
-      #- kasm_lcas_jammy_home:/home/kasm-user
+      - kasm_lcas_jammy_home:/home/kasm-user
       - .:/volume/host
       - /dev/net/tun:/dev/net/tun
     ports:
