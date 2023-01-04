@@ -27,3 +27,8 @@ services:
       - "6022:22"
     security_opt:
       - seccomp=unconfined
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
