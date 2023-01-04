@@ -1,8 +1,10 @@
 #!/bin/bash
 
+echo '@@@ Starting syslog server'
+sudo service syslog-ng start
 echo '@@@ Starting OpenSSH server'
 sudo service ssh start
-echo '@@@ Starting supervisor server'
+echo '@@@ Starting Supervisor server'
 sudo service supervisor start
 
 

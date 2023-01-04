@@ -139,7 +139,7 @@ RUN bash $INST_SCRIPTS/virtualgl/install_virtualgl.sh && rm -rf $INST_SCRIPTS/vi
 
 ### Create user and home directory for base images that don't already define it
 RUN (groupadd -g 1000 kasm-user \
-    && useradd -M -u 1000 -g 1000 kasm-user \
+    && useradd -M -s /bin/bash -u 1000 -g 1000 kasm-user \
     && usermod -a -G kasm-user kasm-user) ; exit 0
 
 ### Add Sudo Access
@@ -171,7 +171,7 @@ RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/r
 RUN apt-get update \
     && apt-get install -y ros-humble-desktop ros-humble-turtlebot3-gazebo ros-humble-turtlebot3-navigation2 \
         python3-pip openssh-server htop ros-humble-turtlesim ros-humble-vision-opencv bash-completion python3-colcon-common-extensions \
-        ros-humble-cv-bridge ros-humble-rosbridge-suite \
+        ros-humble-cv-bridge ros-humble-rosbridge-suite nano syslog-ng \
     && rm -rf /var/lib/apt/list/*
 
 ### Install Teams
@@ -183,7 +183,10 @@ RUN curl -L -o /usr/local/bin/ngrok1 'https://github.com/marc-hanheide/network-s
     && chmod +x /usr/local/bin/ngrok1
 
 RUN echo 'source /opt/ros/humble/setup.bash' >> $HOME/.bashrc \
-    && echo 'export TURTLEBOT3_MODEL=waffle' >> $HOME/.bashrc 
+    && echo 'export TURTLEBOT3_MODEL=waffle' >> $HOME/.bashrc \
+    && echo "source /etc/profile.d/bash_completion.sh" >> $HOME/.bashrc \
+    && echo "PubkeyAcceptedKeyTypes +ssh-rsa" >> /etc/ssh/sshd_config \
+    && echo "StrictModes No" >> /etc/ssh/sshd_config
 
 ENV HOME /home/kasm-user
 WORKDIR $HOME
