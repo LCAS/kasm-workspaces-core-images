@@ -184,7 +184,9 @@ RUN curl -L -o /usr/local/bin/ngrok1 'https://github.com/marc-hanheide/network-s
 
 RUN echo 'source /opt/ros/humble/setup.bash' >> $HOME/.bashrc \
     && echo 'export TURTLEBOT3_MODEL=waffle' >> $HOME/.bashrc \
-    && echo "source /etc/profile.d/bash_completion.sh" >> $HOME/.bashrc \
+    && echo 'export PATH=$HOME/.local/bin:$PATH' >> $HOME/.bashrc \
+    && echo 'source /etc/profile.d/bash_completion.sh' >> $HOME/.bashrc \
+    && echo 'source /usr/share/gazebo/setup.bash' >> $HOME/.bashrc \
     && echo "PubkeyAcceptedKeyTypes +ssh-rsa" >> /etc/ssh/sshd_config \
     && echo "StrictModes No" >> /etc/ssh/sshd_config
 
