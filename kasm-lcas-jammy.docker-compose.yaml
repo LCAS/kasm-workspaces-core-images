@@ -9,11 +9,11 @@ volumes:
 
 networks:
   kasm_desktop:
-    name: "kasm_desktop_network_${USER:-default}"
+    name: "kasm_lcas_jammy_${USER:-default}"
 
 services:
   kasm-desktop:
-    container_name: "kasm-desktop_${USER:-default}"
+    container_name: "kasm_lcas_jammy_${USER:-default}"
     build: 
       context: .
       dockerfile: dockerfile-kasm-lcas-jammy
