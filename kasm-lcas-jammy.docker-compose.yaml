@@ -1,6 +1,6 @@
 version: '3'
 
-name: "uk-ac-lincoln-lcas-kasm-desktop"
+name: "uk-ac-lincoln-lcas-kasm-desktop-ros-humble"
 
 # persist changes in your home directory
 volumes:
@@ -19,11 +19,16 @@ services:
       START_PULSEAUDIO: 1
     image: lcas.lincoln.ac.uk/lcas/kasm-desktop-ros-humble:develop
     volumes:
+      # persist the home directory in a named valume
       - kasm_lcas_jammy_home:/home/kasm-user
+      # expose the current directory to easy file exchange 
       - .:/volume/host
+      # this is for the obscure case of using openvpn to connect to our VPNs if and when needed
       - /dev/net/tun:/dev/net/tun
     ports:
+      # exposing the main port to access the desktop at https://localhost:6901
       - "6901:6901"
+      # also exposing ssh for cases where this is needed
       - "6022:22"
     security_opt:
       - seccomp=unconfined
