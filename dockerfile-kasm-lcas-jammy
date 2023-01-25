@@ -182,7 +182,12 @@ RUN curl -L -o /tmp/teams.deb 'https://go.microsoft.com/fwlink/p/?LinkID=2112886
 RUN curl -L -o /usr/local/bin/ngrok1 'https://github.com/marc-hanheide/network-scripts/blob/master/bin/ngrok1.lnx?raw=true' \
     && chmod +x /usr/local/bin/ngrok1
 
+RUN mkdir -p /opt/ros/lcas_addons/src \
+    && git -C /opt/ros/lcas_addons/src clone --depth 1 -b lcas_humble https://github.com/LCAS/teaching.git \
+    && bash -c 'source /opt/ros/humble/setup.bash; cd /opt/ros/lcas_addons; colcon build '
+
 RUN echo 'source /opt/ros/humble/setup.bash' >> $HOME/.bashrc \
+    && echo 'source /opt/ros/lcas_addons/install/setup.bash' >> $HOME/.bashrc \
     && echo 'export TURTLEBOT3_MODEL=waffle' >> $HOME/.bashrc \
     && echo 'export PATH=$HOME/.local/bin:$PATH' >> $HOME/.bashrc \
     && echo 'source /etc/profile.d/bash_completion.sh' >> $HOME/.bashrc \
