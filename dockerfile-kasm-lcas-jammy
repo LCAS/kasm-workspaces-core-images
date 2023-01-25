@@ -1,8 +1,8 @@
-ARG BASE_IMAGE="nvidia/cuda:11.7.1-devel-ubuntu22.04"
+ARG BASE_IMAGE="ubuntu:22.04"
 FROM $BASE_IMAGE AS install_tools
 ARG DISTRO=ubuntu
 
-LABEL "org.opencontainers.image.authors"='Marc Hanheide, based on Kasm Tech "marc@hanheide.net"'
+LABEL "org.opencontainers.image.authors"='Kasm Tech "info@kasmweb.com"'
 LABEL "com.kasmweb.image"="true"
 LABEL "com.kasmweb.gpu_acceleration_egl"="nvidia"
 
