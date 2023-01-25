@@ -39,8 +39,8 @@ services:
       - "${HTTPS_PORT:-6901}:6901"
     security_opt:
       - seccomp=unconfined
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - capabilities: [gpu]
