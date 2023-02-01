@@ -171,7 +171,7 @@ RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/r
 RUN apt-get update \
     && apt-get install -y ros-humble-desktop ros-humble-turtlebot3-gazebo ros-humble-turtlebot3-navigation2 \
         python3-pip openssh-server htop ros-humble-turtlesim ros-humble-vision-opencv bash-completion python3-colcon-common-extensions \
-        ros-humble-cv-bridge ros-humble-rosbridge-suite nano syslog-ng \
+        ros-humble-cv-bridge ros-humble-rosbridge-suite ros-humble-turtlebot3-teleop nano syslog-ng \
     && rm -rf /var/lib/apt/list/*
 
 # ### Add Noetic
