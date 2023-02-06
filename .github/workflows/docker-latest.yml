@@ -2,11 +2,11 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ nvidia_develop ]
     tags:
       - '*'
   pull_request:
-    branches: [ develop ]
+    branches: [ nvidia_develop ]
 
 jobs:
 
