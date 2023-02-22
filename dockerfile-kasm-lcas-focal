@@ -174,7 +174,9 @@ RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main"
 
 ### Install Teams
 #RUN curl -L -o /tmp/teams.deb 'https://go.microsoft.com/fwlink/p/?LinkID=2112886&clcid=0x809&culture=en-gb&country=GB' \
-#    && apt-get install -y /tmp/teams.deb 
+# use local cache version now
+RUN curl -L -o /tmp/teams.deb 'https://lcas.lincoln.ac.uk/nextcloud/index.php/s/9wsc3piD5gtY7MB/download' \
+    && apt-get install -y /tmp/teams.deb 
 
 ### Install ngrok1
 RUN curl -L -o /usr/local/bin/ngrok1 'https://github.com/marc-hanheide/network-scripts/blob/master/bin/ngrok1.lnx?raw=true' \

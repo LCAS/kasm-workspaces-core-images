@@ -183,7 +183,9 @@ RUN apt-get update \
 #     && rosdep init
 
 ### Install Teams
-RUN curl -L -o /tmp/teams.deb 'https://go.microsoft.com/fwlink/p/?LinkID=2112886&clcid=0x809&culture=en-gb&country=GB' \
+# RUN curl -L -o /tmp/teams.deb 'https://go.microsoft.com/fwlink/p/?LinkID=2112886&clcid=0x809&culture=en-gb&country=GB' \
+# use local cache version now
+RUN curl -L -o /tmp/teams.deb 'https://lcas.lincoln.ac.uk/nextcloud/index.php/s/9wsc3piD5gtY7MB/download' \
     && apt-get install -y /tmp/teams.deb 
 
 ### Install ngrok1
