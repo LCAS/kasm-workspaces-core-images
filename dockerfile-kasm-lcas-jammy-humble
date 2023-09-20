@@ -229,6 +229,11 @@ RUN echo 'source /opt/ros/humble/setup.bash' >> $HOME/.bashrc \
     && echo "PubkeyAcceptedKeyTypes +ssh-rsa" >> /etc/ssh/sshd_config \
     && echo "StrictModes No" >> /etc/ssh/sshd_config
 
+RUN apt-get update \
+    && apt-get install -y nvidia-driver-535 \
+    && rm -rf /var/lib/apt/list/*
+
+
 ENV HOME /home/kasm-user
 WORKDIR $HOME
 RUN mkdir -p $HOME && chown -R 1000:0 $HOME
