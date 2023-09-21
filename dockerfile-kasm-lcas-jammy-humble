@@ -1,5 +1,5 @@
 ARG BASE_IMAGE="nvidia/cuda:11.7.1-devel-ubuntu22.04"
-FROM $BASE_IMAGE AS install_tools
+FROM $BASE_IMAGE AS base_layer
 ARG DISTRO=ubuntu
 
 LABEL "org.opencontainers.image.authors"='Marc Hanheide, based on Kasm Tech "marc@hanheide.net"'
@@ -56,9 +56,13 @@ RUN mkdir -p $HOME/Desktop
 # Support NVIDIA gpus for graphics acceleration
 RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
     echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
-ENV LD_LIBRARY_PATH /usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
-ENV NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics,compat32,utility
+#ENV LD_LIBRARY_PATH /usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+#ENV NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics,compat32,utility
 COPY src/ubuntu/install/nvidia/10_nvidia.json /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+
+### Setup package rules
+COPY ./src/ubuntu/install/package_rules $INST_SCRIPTS/package_rules/
+RUN bash $INST_SCRIPTS/package_rules/package_rules.sh && rm -rf $INST_SCRIPTS/package_rules/
 
 ### Install common tools
 COPY ./src/ubuntu/install/tools $INST_SCRIPTS/tools/
@@ -88,10 +92,13 @@ COPY ./src/ubuntu/install/kasm_vnc $INST_SCRIPTS/kasm_vnc/
 RUN bash $INST_SCRIPTS/kasm_vnc/install_kasm_vnc.sh && rm -rf $INST_SCRIPTS/kasm_vnc/
 COPY ./src/common/install/kasm_vnc/kasmvnc.yaml /etc/kasmvnc/
 
+### Install Kasm Profile Sync
+COPY ./src/ubuntu/install/profile_sync $INST_SCRIPTS/profile_sync/
+RUN bash $INST_SCRIPTS/profile_sync/install_profile_sync.sh
+
 ### Install Kasm Upload Server
 COPY ./src/ubuntu/install/kasm_upload_server $INST_SCRIPTS/kasm_upload_server/
 RUN bash $INST_SCRIPTS/kasm_upload_server/install_kasm_upload_server.sh  && rm -rf $INST_SCRIPTS/kasm_upload_server/
-
 
 ### Install Audio
 COPY ./src/ubuntu/install/audio $INST_SCRIPTS/audio/
@@ -105,9 +112,19 @@ RUN bash $INST_SCRIPTS/audio_input/install_audio_input.sh && rm -rf $INST_SCRIPT
 COPY ./src/ubuntu/install/gamepad $INST_SCRIPTS/gamepad/
 RUN bash $INST_SCRIPTS/gamepad/install_gamepad.sh && rm -rf $INST_SCRIPTS/gamepad/
 
+### Install Webcam Service
+COPY ./src/ubuntu/install/webcam $INST_SCRIPTS/webcam/
+RUN bash $INST_SCRIPTS/webcam/install_webcam.sh && rm -rf $INST_SCRIPTS/webcam/
+
+### Install Printer
+COPY ./src/ubuntu/install/printer $INST_SCRIPTS/printer/
+COPY ./src/ubuntu/install/printer/start_cups.sh /etc/cups/start_cups.sh
+RUN bash $INST_SCRIPTS/printer/install_printer.sh && rm -rf $INST_SCRIPTS/printer
+COPY ./src/ubuntu/install/printer/resources/*.ppd /etc/cups/ppd/
+
 ### Install custom cursors
-#COPY ./src/ubuntu/install/cursors $INST_SCRIPTS/cursors/
-#RUN bash $INST_SCRIPTS/cursors/install_cursors.sh && rm -rf $INST_SCRIPTS/cursors/
+COPY ./src/ubuntu/install/cursors $INST_SCRIPTS/cursors/
+RUN bash $INST_SCRIPTS/cursors/install_cursors.sh && rm -rf $INST_SCRIPTS/cursors/
 
 ### Install Squid
 COPY ./src/ubuntu/install/squid/install/ $INST_SCRIPTS/squid_install/
@@ -136,6 +153,14 @@ RUN bash $INST_SCRIPTS/extra/$EXTRA_SH  && rm -rf $INST_SCRIPTS/extra/
 ### VirtualGL
 COPY ./src/ubuntu/install/virtualgl $INST_SCRIPTS/virtualgl/
 RUN bash $INST_SCRIPTS/virtualgl/install_virtualgl.sh && rm -rf $INST_SCRIPTS/virtualgl/
+
+### Sysbox support
+COPY ./src/ubuntu/install/sysbox $INST_SCRIPTS/sysbox/
+RUN bash $INST_SCRIPTS/sysbox/install_systemd.sh && rm -rf $INST_SCRIPTS/sysbox/
+
+### Custom Folder Emblems
+COPY ./src/ubuntu/install/emblems $INST_SCRIPTS/emblems/
+RUN bash $INST_SCRIPTS/emblems/install_emblems.sh && rm -rf $INST_SCRIPTS/emblems/
 
 ### Create user and home directory for base images that don't already define it
 RUN (groupadd -g 1000 kasm-user \
@@ -192,9 +217,87 @@ RUN curl -L -o /tmp/teams.deb 'https://lcas.lincoln.ac.uk/nextcloud/index.php/s/
 RUN curl -L -o /usr/local/bin/ngrok1 'https://github.com/marc-hanheide/network-scripts/blob/master/bin/ngrok1.lnx?raw=true' \
     && chmod +x /usr/local/bin/ngrok1
 
+# ###### CMP9767 deps
+RUN mkdir -p /tmp/build/cmp9767
+WORKDIR /tmp/build/cmp9767
+RUN apt-get update \
+    && apt-get install -qq -y --no-install-recommends \
+    build-essential \
+    cmake \
+    git \
+    libssl-dev \
+    libusb-1.0-0-dev \
+    pkg-config \
+    libgtk-3-dev \
+    libglfw3-dev \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
+    libglvnd0 \
+    libglx0 \
+    libegl1 \
+    libxext6 \
+    libx11-6 \
+    curl \  
+    libusb-1.0* \
+    udev \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    swig \
+    software-properties-common \
+    python3-pip \
+    ros-humble-rmw-cyclonedds-cpp \
+    ros-humble-rviz2* \
+    ros-humble-cartographer* \
+    ros-humble-nav* \
+    ros-humble-teleop-twist-keyboard \
+    ros-humble-joint-state-publisher* \
+    ros-humble-robot-state-publisher* \ 
+    ros-humble-xacro \
+    ros-humble-imu-tools \
+    libgflags-dev \
+    nlohmann-json3-dev \
+    ros-humble-image-* \
+    && rm -rf /var/lib/apt/lists/*
+RUN git clone https://github.com/YDLIDAR/YDLidar-SDK.git &&\
+    mkdir -p YDLidar-SDK/build && \
+    cd YDLidar-SDK/build &&\
+    cmake ..&&\
+    make &&\
+    make install &&\
+    cd .. &&\
+    pip install . &&\
+    cd .. && rm -r YDLidar-SDK 
+RUN wget -c https://github.com/google/glog/archive/refs/tags/v0.6.0.tar.gz  -O glog-0.6.0.tar.gz &&\
+    tar -xzvf glog-0.6.0.tar.gz &&\
+    cd glog-0.6.0 &&\
+    mkdir build && cd build &&\
+    cmake .. && make -j4 &&\
+    make install &&\
+    ldconfig &&\
+    cd ../.. && rm -r glog-*
+RUN wget -c https://github.com/Neargye/magic_enum/archive/refs/tags/v0.8.0.tar.gz -O  magic_enum-0.8.0.tar.gz &&\
+    tar -xzvf magic_enum-0.8.0.tar.gz &&\
+    cd magic_enum-0.8.0 &&\
+    mkdir build && cd build &&\
+    cmake .. && make -j4 &&\
+    make install &&\
+    ldconfig &&\
+    cd ../.. && rm -r magic_enum*
+RUN git clone https://github.com/libuvc/libuvc.git &&\
+    cd libuvc &&\
+    mkdir build && cd build &&\
+    cmake .. && make -j4 &&\
+    make install &&\
+    ldconfig  &&\
+    cd ../.. && rm -r libuvc*
+
+########
+
 RUN mkdir -p /opt/ros/lcas_addons/src \
     && git -C /opt/ros/lcas_addons/src clone --depth 1 -b lcas_humble https://github.com/LCAS/teaching.git \
-    && bash -c 'source /opt/ros/humble/setup.bash; cd /opt/ros/lcas_addons; colcon build '
+    && git -C /opt/ros/lcas_addons/src clone --depth 1 -b humble https://github.com/LCAS/limo_ros2.git \
+    && bash -c 'source /opt/ros/humble/setup.bash; cd /opt/ros/lcas_addons; colcon build --cmake-args "-DCMAKE_BUILD_TYPE=RelWithDebInfo"'
 
 RUN echo 'source /opt/ros/humble/setup.bash' >> $HOME/.bashrc \
     && echo 'source /opt/ros/lcas_addons/install/setup.bash' >> $HOME/.bashrc \
@@ -204,6 +307,7 @@ RUN echo 'source /opt/ros/humble/setup.bash' >> $HOME/.bashrc \
     && echo 'source /usr/share/gazebo/setup.bash' >> $HOME/.bashrc \
     && echo "PubkeyAcceptedKeyTypes +ssh-rsa" >> /etc/ssh/sshd_config \
     && echo "StrictModes No" >> /etc/ssh/sshd_config
+
 
 ENV HOME /home/kasm-user
 WORKDIR $HOME
@@ -235,10 +339,70 @@ RUN touch $STARTUPDIR/wm.log \
     && chown 1000:root /var/run/pulse \
     && rm -Rf /home/kasm-default-profile/.launchpadlib
 
-# add code-server addons
-#RUN su -c '/usr/bin/code --install-extension ms-python.python && /usr/bin/code --install-extension pijar.ros-snippets' kasm-user
+### Cleanup job
+COPY ./src/ubuntu/install/cleanup $INST_SCRIPTS/cleanup/
+RUN bash $INST_SCRIPTS/cleanup/cleanup.sh && rm -rf $INST_SCRIPTS/cleanup/
 
+#### Runtime Stage ####
+#FROM scratch
+#COPY --from=base_layer / /
 
+### Labels
+LABEL "org.opencontainers.image.authors"='Kasm Tech "info@kasmweb.com"'
+LABEL "com.kasmweb.image"="true"
+LABEL "com.kasmweb.gpu_acceleration_egl"="nvidia"
+
+### Environment config
+ARG DISTRO=ubuntu
+ARG EXTRA_SH=noop.sh
+ARG LANG='en_US.UTF-8'
+ARG LANGUAGE='en_US:en'
+ARG LC_ALL='en_US.UTF-8'
+ARG START_PULSEAUDIO=1
+ARG START_XFCE4=1
+ARG TZ='Etc/UTC'
+ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+ENV AUDIO_PORT=4901 \
+    DEBIAN_FRONTEND=noninteractive \
+    DISPLAY=:1 \
+    DISTRO=$DISTRO \
+    GOMP_SPINCOUNT=0 \
+    HOME=/home/kasm-user \
+    INST_SCRIPTS=/dockerstartup/install \
+    KASMVNC_AUTO_RECOVER=true \
+    KASM_VNC_PATH=/usr/share/kasmvnc \
+    LANG=$LANG \
+    LANGUAGE=$LANGUAGE \
+    LC_ALL=$LC_ALL \
+    LD_LIBRARY_PATH=/opt/libjpeg-turbo/lib64/:/usr/local/lib/ \
+    LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}:/usr/local/nvidia/lib:/usr/local/nvidia/lib64 \
+    MAX_FRAME_RATE=24 \
+    NO_VNC_PORT=6901 \
+    NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics,compat32,utility \
+    OMP_WAIT_POLICY=PASSIVE \
+    PULSE_RUNTIME_PATH=/var/run/pulse \
+    SDL_GAMECONTROLLERCONFIG="030000005e040000be02000014010000,XInput Controller,platform:Linux,a:b0,b:b1,x:b2,y:b3,back:b8,guide:b16,start:b9,leftstick:b10,rightstick:b11,leftshoulder:b4,rightshoulder:b5,dpup:b12,dpdown:b13,dpleft:b14,dpright:b15,leftx:a0,lefty:a1,rightx:a2,righty:a3,lefttrigger:b6,righttrigger:b7" \
+    SHELL=/bin/bash \
+    START_PULSEAUDIO=$START_PULSEAUDIO \
+    STARTUPDIR=/dockerstartup \
+    START_XFCE4=$START_XFCE4 \
+    TERM=xterm \
+    VNC_COL_DEPTH=24 \
+    VNCOPTIONS="-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0" \
+    VNC_PORT=5901 \
+    VNC_PORT=5901 \
+    VNC_PW=vncpassword \
+    VNC_RESOLUTION=1280x1024 \
+    VNC_RESOLUTION=1280x720 \
+    VNC_VIEW_ONLY_PW=vncviewonlypassword \
+    TZ=$TZ
+
+### Ports and user
+EXPOSE $VNC_PORT \
+       $NO_VNC_PORT \
+       $UPLOAD_PORT \
+       $AUDIO_PORT
+WORKDIR $HOME
 USER 1000
 
 ENTRYPOINT ["/dockerstartup/kasm_default_profile.sh", "/dockerstartup/vnc_startup.sh", "/dockerstartup/kasm_startup.sh"]
