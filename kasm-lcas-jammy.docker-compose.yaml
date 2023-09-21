@@ -23,7 +23,11 @@ services:
       # This is the password required when accessing the desktop in the browser, user name is "kasm_user"
       VNC_PW: "${VNC_PW:-password}"
       START_XFCE4: 1
+      #KASM_EGL_CARD: /dev/dri/card0
+      #KASM_RENDERD: /dev/dri/renderD128
+      #HW3D: 1
       START_PULSEAUDIO: 1
+      KASM_SVC_PRINTER: 0
     image: lcas.lincoln.ac.uk/lcas/kasm-desktop-ros-humble:nvidia_develop
     volumes:
       # persist the home directory in a named valume
