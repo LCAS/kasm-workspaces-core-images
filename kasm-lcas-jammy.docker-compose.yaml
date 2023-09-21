@@ -25,7 +25,7 @@ services:
       #KASM_EGL_CARD: /dev/dri/card0
       #KASM_RENDERD: /dev/dri/renderD128
       DEBUG: false
-      HW3D: false
+      #HW3D: 1
       #DRINODE: "/dev/dri/renderD128"
       START_XFCE4: 1
       START_PULSEAUDIO: 1
