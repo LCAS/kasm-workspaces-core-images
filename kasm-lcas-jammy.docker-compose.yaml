@@ -22,6 +22,11 @@ services:
     environment:
       # This is the password required when accessing the desktop in the browser, user name is "kasm_user"
       VNC_PW: "${VNC_PW:-password}"
+      #KASM_EGL_CARD: /dev/dri/card0
+      #KASM_RENDERD: /dev/dri/renderD128
+      DEBUG: false
+      #HW3D: 1
+      #DRINODE: "/dev/dri/renderD128"
       START_XFCE4: 1
       #KASM_EGL_CARD: /dev/dri/card0
       #KASM_RENDERD: /dev/dri/renderD128

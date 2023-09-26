@@ -258,6 +258,7 @@ RUN apt-get update \
     libgflags-dev \
     nlohmann-json3-dev \
     ros-humble-image-* \
+    vinagre \
     && rm -rf /var/lib/apt/lists/*
 RUN git clone https://github.com/YDLIDAR/YDLidar-SDK.git &&\
     mkdir -p YDLidar-SDK/build && \
@@ -312,6 +313,17 @@ RUN echo 'source /opt/ros/humble/setup.bash' >> $HOME/.bashrc \
 ENV HOME /home/kasm-user
 WORKDIR $HOME
 RUN mkdir -p $HOME && chown -R 1000:0 $HOME
+
+RUN /usr/bin/code --no-sandbox --user-data-dir $HOME/.vscode \
+    --install-extension king2021.vnc-extension \
+    --install-extension ms-vscode-remote.remote-ssh \
+    --install-extension ms-vscode-remote.remote-containers \
+    --install-extension ms-python.python \
+    --install-extension mhutchie.git-graph \
+    --install-extension ms-toolsai.jupyter \
+    --install-extension ms-vscode.cpptools \
+    --install-extension rpdswtk.vsmqtt
+
 
 ### FIX PERMISSIONS ## Objective is to change the owner of non-home paths to root, remove write permissions, and set execute where required
 # these files are created on container first exec, by the default user, so we have to create them since default will not have write perm
