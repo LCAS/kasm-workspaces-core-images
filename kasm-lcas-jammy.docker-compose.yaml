@@ -14,6 +14,7 @@ networks:
 services:
   kasm-desktop:
     container_name: "kasm_lcas_jammy_${USER:-default}"
+    platform: linux/amd64
     build: 
       context: .
       dockerfile: dockerfile-kasm-lcas-jammy-humble
