@@ -295,6 +295,10 @@ RUN git clone https://github.com/libuvc/libuvc.git &&\
 
 ########
 
+# add commit history to bust cache if and when needed.
+ADD "https://api.github.com/repos/LCAS/limo_ros2/commits?per_page=1" .lcas_addons.limo_ros2.commits
+ADD "https://api.github.com/repos/LCAS/teaching/commits?per_page=1" .lcas_addons.teaching.commits
+
 RUN mkdir -p /opt/ros/lcas_addons/src \
     && git -C /opt/ros/lcas_addons/src clone --depth 1 -b lcas_humble https://github.com/LCAS/teaching.git \
     && git -C /opt/ros/lcas_addons/src clone --depth 1 -b humble https://github.com/LCAS/limo_ros2.git \
