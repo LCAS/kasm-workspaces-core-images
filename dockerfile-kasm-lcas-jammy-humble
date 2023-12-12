@@ -272,14 +272,19 @@ RUN apt-get update \
     ros-humble-rviz2* \
     ros-humble-cartographer* \
     ros-humble-nav* \
+    ros-humble-nav2-rviz-plugins \
     ros-humble-teleop-twist-keyboard \
     ros-humble-joint-state-publisher* \
     ros-humble-robot-state-publisher* \ 
     ros-humble-xacro \
     ros-humble-imu-tools \
+    ros-humble-tf-transformations \
+    ros-humble-rqt-tf-tree \
+    ros-humble-rqt-image-view \
+    ros-humble-find-object-2d \
+    ros-humble-image-* \
     libgflags-dev \
     nlohmann-json3-dev \
-    ros-humble-image-* \
     vinagre \
     && rm -rf /var/lib/apt/lists/*
 RUN git clone https://github.com/YDLIDAR/YDLidar-SDK.git &&\
@@ -314,6 +319,7 @@ RUN git clone https://github.com/libuvc/libuvc.git &&\
     make install &&\
     ldconfig  &&\
     cd ../.. && rm -r libuvc*
+RUN pip3 install transforms3d
 
 ########
 
