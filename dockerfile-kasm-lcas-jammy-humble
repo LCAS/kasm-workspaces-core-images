@@ -193,11 +193,33 @@ RUN wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 RUN add-apt-repository universe
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+
+#### Add L-CAS repository
+RUN sh -c 'echo "deb https://lcas.lincoln.ac.uk/apt/lcas $(lsb_release -sc) lcas" > /etc/apt/sources.list.d/lcas-latest.list' && \
+    curl -s https://lcas.lincoln.ac.uk/apt/repo_signing.gpg | tee /etc/apt/trusted.gpg.d/lcas-latest.gpg
+
+#### Add docker repository
+RUN install -m 0755 -d /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+    chmod a+r /etc/apt/keyrings/docker.gpg && \
+    echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+    tee /etc/apt/sources.list.d/docker.list > /dev/null
+
 RUN apt-get update \
-    && apt-get install -y ros-humble-desktop ros-humble-turtlebot3-gazebo ros-humble-turtlebot3-navigation2 \
+    && apt-get install -y python3-rosdep ros-humble-desktop ros-humble-turtlebot3-gazebo ros-humble-turtlebot3-navigation2 \
         python3-pip openssh-server htop ros-humble-turtlesim ros-humble-vision-opencv bash-completion python3-colcon-common-extensions \
         ros-humble-cv-bridge ros-humble-rosbridge-suite ros-humble-turtlebot3-teleop nano syslog-ng \
     && rm -rf /var/lib/apt/list/*
+
+### Configure rosdep
+RUN rosdep init || mkdir -p /etc/ros/rosdep/sources.list.d/
+RUN curl -o /etc/ros/rosdep/sources.list.d/20-default.list https://raw.githubusercontent.com/LCAS/rosdistro/master/rosdep/sources.list.d/20-default.list && \
+    curl -o /etc/ros/rosdep/sources.list.d/50-lcas.list https://raw.githubusercontent.com/LCAS/rosdistro/master/rosdep/sources.list.d/50-lcas.list
+
+ENV ROSDISTRO_INDEX_URL=https://raw.github.com/LCAS/rosdistro/master/index-v4.yaml
 
 # ### Add Noetic
 # RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' \
@@ -250,14 +272,19 @@ RUN apt-get update \
     ros-humble-rviz2* \
     ros-humble-cartographer* \
     ros-humble-nav* \
+    ros-humble-nav2-rviz-plugins \
     ros-humble-teleop-twist-keyboard \
     ros-humble-joint-state-publisher* \
     ros-humble-robot-state-publisher* \ 
     ros-humble-xacro \
     ros-humble-imu-tools \
+    ros-humble-tf-transformations \
+    ros-humble-rqt-tf-tree \
+    ros-humble-rqt-image-view \
+    ros-humble-find-object-2d \
+    ros-humble-image-* \
     libgflags-dev \
     nlohmann-json3-dev \
-    ros-humble-image-* \
     vinagre \
     && rm -rf /var/lib/apt/lists/*
 RUN git clone https://github.com/YDLIDAR/YDLidar-SDK.git &&\
@@ -292,6 +319,7 @@ RUN git clone https://github.com/libuvc/libuvc.git &&\
     make install &&\
     ldconfig  &&\
     cd ../.. && rm -r libuvc*
+RUN pip3 install transforms3d
 
 ########
 
